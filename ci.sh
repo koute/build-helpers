@@ -70,14 +70,6 @@ openssl aes-256-cbc -K $ENCRYPTED_KEY -iv $ENCRYPTED_IV -in ../deploy_key.enc -d
 
 pushd deployment
 git checkout $TARGET_BRANCH || git checkout --orphan $TARGET_BRANCH
-git lfs track "*.tgz" || true
-git lfs track "*.txz" || true
-git add .gitattributes
-if [ $(git status --porcelain | wc -l) -ge 1 ]; then
-    git add -A .
-    git commit -m "Prepare repository"
-    git push $SSH_REPOSITORY $TARGET_BRANCH
-fi
 popd # deployment
 
 if [ -f "deployment/$OUTPUT" ]; then
@@ -119,6 +111,15 @@ sha256sum $OUTPUT
 if [ "$TRAVIS_PULL_REQUEST" != "false" -o "$TRAVIS_BRANCH" != "$SOURCE_BRANCH" ]; then
     echo "Skipping deployment"
     exit 0
+fi
+
+git lfs track "*.tgz" || true
+git lfs track "*.txz" || true
+git add .gitattributes
+if [ $(git status --porcelain | wc -l) -ge 1 ]; then
+    git add -A .
+    git commit -m "Prepare repository"
+    git push $SSH_REPOSITORY $TARGET_BRANCH
 fi
 
 cp $OUTPUT deployment/$OUTPUT
