@@ -42,6 +42,8 @@ curl -Lo git-lfs-linux-amd64-2.0.1.tar.gz https://github.com/git-lfs/git-lfs/rel
 tar -xf git-lfs-linux-amd64-2.0.1.tar.gz
 cp git-lfs-2.0.1/git-lfs /tmp/tools/usr/local/bin
 
+git lfs install
+
 export SOURCE_BRANCH="${SOURCE_BRANCH:-master}"
 export TARGET_BRANCH="${TARGET_BRANCH:-gh-pages}"
 
@@ -52,10 +54,30 @@ export REPOSITORY=`git config remote.origin.url`
 export SSH_REPOSITORY=${REPOSITORY/https:\/\/github.com\//git@github.com:}
 export COMMIT_HASH=`git rev-parse --verify HEAD`
 
+# This will prevent the git-lfs from downloading everything.
+export GIT_LFS_SKIP_SMUDGE=1
+
+git config user.name "Travis CI"
+git config user.email "$COMMIT_AUTHOR_EMAIL"
 git clone $REPOSITORY deployment
+
+ENCRYPTED_KEY_VAR="encrypted_${ENCRYPTION_LABEL}_key"
+ENCRYPTED_IV_VAR="encrypted_${ENCRYPTION_LABEL}_iv"
+ENCRYPTED_KEY=${!ENCRYPTED_KEY_VAR}
+ENCRYPTED_IV=${!ENCRYPTED_IV_VAR}
+eval `ssh-agent -s`
+openssl aes-256-cbc -K $ENCRYPTED_KEY -iv $ENCRYPTED_IV -in ../deploy_key.enc -d | ssh-add -
 
 pushd deployment
 git checkout $TARGET_BRANCH || git checkout --orphan $TARGET_BRANCH
+git lfs track "*.tgz" || true
+git lfs track "*.txz" || true
+git add .gitattributes
+if [ $(git status --porcelain | wc -l) -ge 1 ]; then
+    git add -A .
+    git commit -m "Prepare repository"
+    git push $SSH_REPOSITORY $TARGET_BRANCH
+fi
 popd # deployment
 
 if [ -f "deployment/$OUTPUT" ]; then
@@ -108,18 +130,8 @@ if [ $(git status --porcelain | wc -l) -lt 1 ]; then
     exit 0
 fi
 
-git config user.name "Travis CI"
-git config user.email "$COMMIT_AUTHOR_EMAIL"
-
 git add -A .
 git commit -m "Deploy $OUTPUT based on commit $COMMIT_HASH"
-
-ENCRYPTED_KEY_VAR="encrypted_${ENCRYPTION_LABEL}_key"
-ENCRYPTED_IV_VAR="encrypted_${ENCRYPTION_LABEL}_iv"
-ENCRYPTED_KEY=${!ENCRYPTED_KEY_VAR}
-ENCRYPTED_IV=${!ENCRYPTED_IV_VAR}
-eval `ssh-agent -s`
-openssl aes-256-cbc -K $ENCRYPTED_KEY -iv $ENCRYPTED_IV -in ../deploy_key.enc -d | ssh-add -
-
 git push $SSH_REPOSITORY $TARGET_BRANCH
+
 popd # deployment
