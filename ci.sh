@@ -35,6 +35,13 @@ source ./config.sh
 # Prepare
 ##
 
+mkdir -p /tmp/tools/usr/local/bin
+export PATH=/tmp/tools/usr/local/bin:$PATH
+
+curl -Lo git-lfs-linux-amd64-2.0.1.tar.gz https://github.com/git-lfs/git-lfs/releases/download/v2.0.1/git-lfs-linux-amd64-2.0.1.tar.gz
+tar -xf git-lfs-linux-amd64-2.0.1.tar.gz
+cp git-lfs-2.0.1/git-lfs /tmp/tools/usr/local/bin
+
 export SOURCE_BRANCH="${SOURCE_BRANCH:-master}"
 export TARGET_BRANCH="${TARGET_BRANCH:-gh-pages}"
 
@@ -59,9 +66,6 @@ fi
 ##
 # Prepare dependencies
 ##
-
-mkdir -p /tmp/tools/usr/local/bin
-export PATH=/tmp/tools/usr/local/bin:$PATH
 
 if [ $BUILD_CMAKE == true ]; then
     curl -Lo cmake-3.7.2.tar.gz https://cmake.org/files/v3.7/cmake-3.7.2.tar.gz
