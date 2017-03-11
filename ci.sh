@@ -39,7 +39,7 @@ export SOURCE_BRANCH="${SOURCE_BRANCH:-master}"
 export TARGET_BRANCH="${TARGET_BRANCH:-gh-pages}"
 
 export REPOSITORY=`git config remote.origin.url`
-export SSH_REPOSITORY=${REPO/https:\/\/github.com\//git@github.com:}
+export SSH_REPOSITORY=${REPOSITORY/https:\/\/github.com\//git@github.com:}
 export COMMIT_HASH=`git rev-parse --verify HEAD`
 
 git clone $REPOSITORY deployment
