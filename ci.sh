@@ -61,13 +61,6 @@ git config user.name "Travis CI"
 git config user.email "$COMMIT_AUTHOR_EMAIL"
 git clone $REPOSITORY deployment
 
-ENCRYPTED_KEY_VAR="encrypted_${ENCRYPTION_LABEL}_key"
-ENCRYPTED_IV_VAR="encrypted_${ENCRYPTION_LABEL}_iv"
-ENCRYPTED_KEY=${!ENCRYPTED_KEY_VAR}
-ENCRYPTED_IV=${!ENCRYPTED_IV_VAR}
-eval `ssh-agent -s`
-openssl aes-256-cbc -K $ENCRYPTED_KEY -iv $ENCRYPTED_IV -in ../deploy_key.enc -d | ssh-add -
-
 pushd deployment
 git checkout $TARGET_BRANCH || git checkout --orphan $TARGET_BRANCH
 popd # deployment
@@ -113,6 +106,14 @@ if [ "$TRAVIS_PULL_REQUEST" != "false" -o "$TRAVIS_BRANCH" != "$SOURCE_BRANCH" ]
     exit 0
 fi
 
+ENCRYPTED_KEY_VAR="encrypted_${ENCRYPTION_LABEL}_key"
+ENCRYPTED_IV_VAR="encrypted_${ENCRYPTION_LABEL}_iv"
+ENCRYPTED_KEY=${!ENCRYPTED_KEY_VAR}
+ENCRYPTED_IV=${!ENCRYPTED_IV_VAR}
+eval `ssh-agent -s`
+openssl aes-256-cbc -K $ENCRYPTED_KEY -iv $ENCRYPTED_IV -in deploy_key.enc -d | ssh-add -
+
+pushd deployment
 git lfs track "*.tgz" || true
 git lfs track "*.txz" || true
 git add .gitattributes
@@ -121,6 +122,7 @@ if [ $(git status --porcelain | wc -l) -ge 1 ]; then
     git commit -m "Prepare repository"
     git push $SSH_REPOSITORY $TARGET_BRANCH
 fi
+popd # deployment
 
 cp $OUTPUT deployment/$OUTPUT
 sha256sum $OUTPUT > deployment/$OUTPUT.sha256
@@ -134,5 +136,4 @@ fi
 git add -A .
 git commit -m "Deploy $OUTPUT based on commit $COMMIT_HASH"
 git push $SSH_REPOSITORY $TARGET_BRANCH
-
 popd # deployment
