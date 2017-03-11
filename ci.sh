@@ -39,6 +39,7 @@ export SOURCE_BRANCH="${SOURCE_BRANCH:-master}"
 export TARGET_BRANCH="${TARGET_BRANCH:-gh-pages}"
 
 export BUILD_CMAKE="${BUILD_CMAKE:-false}"
+export INSTALL_CMAKE="${INSTALL_CMAKE:-false}"
 
 export REPOSITORY=`git config remote.origin.url`
 export SSH_REPOSITORY=${REPOSITORY/https:\/\/github.com\//git@github.com:}
@@ -72,6 +73,10 @@ if [ $BUILD_CMAKE == true ]; then
     make install DESTDIR=/tmp/tools
 
     popd # cmake-3.7.2
+elif [ $INSTALL_CMAKE == true ]; then
+    curl -Lo cmake-3.7.2-Linux-x86_64.sh https://cmake.org/files/v3.7/cmake-3.7.2-Linux-x86_64.sh
+    chmod +x ./cmake-3.7.2-Linux-x86_64.sh
+    ./cmake-3.7.2-Linux-x86_64.sh --skip-license --prefix=/tmp/tools/usr/local
 fi
 
 ##
