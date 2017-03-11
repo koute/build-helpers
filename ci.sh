@@ -38,6 +38,8 @@ source ./config.sh
 export SOURCE_BRANCH="${SOURCE_BRANCH:-master}"
 export TARGET_BRANCH="${TARGET_BRANCH:-gh-pages}"
 
+export BUILD_CMAKE="${BUILD_CMAKE:-false}"
+
 export REPOSITORY=`git config remote.origin.url`
 export SSH_REPOSITORY=${REPOSITORY/https:\/\/github.com\//git@github.com:}
 export COMMIT_HASH=`git rev-parse --verify HEAD`
@@ -51,6 +53,25 @@ popd # deployment
 if [ -f "deployment/$OUTPUT" ]; then
     echo "$OUTPUT already exists in the repository! Nothing to do."
     exit 0
+fi
+
+##
+# Prepare dependencies
+##
+
+mkdir -p /tmp/tools/usr/local/bin
+export PATH=/tmp/tools/usr/local/bin:$PATH
+
+if [ $BUILD_CMAKE == true ]; then
+    curl -Lo cmake-3.7.2.tar.gz https://cmake.org/files/v3.7/cmake-3.7.2.tar.gz
+    tar -xf cmake-3.7.2.tar.gz
+    pushd cmake-3.7.2
+
+    ./configure --parallel=4
+    make -j 4
+    make install DESTDIR=/tmp/tools
+
+    popd # cmake-3.7.2
 fi
 
 ##
