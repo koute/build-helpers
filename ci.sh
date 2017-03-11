@@ -114,13 +114,14 @@ eval `ssh-agent -s`
 openssl aes-256-cbc -K $ENCRYPTED_KEY -iv $ENCRYPTED_IV -in deploy_key.enc -d | ssh-add -
 
 pushd deployment
+git remote add ssh_origin $SSH_REPOSITORY
 git lfs track "*.tgz" || true
 git lfs track "*.txz" || true
 git add .gitattributes
 if [ $(git status --porcelain | wc -l) -ge 1 ]; then
     git add -A .
     git commit -m "Prepare repository"
-    git push $SSH_REPOSITORY $TARGET_BRANCH
+    git push ssh_origin $TARGET_BRANCH
 fi
 popd # deployment
 
@@ -135,5 +136,5 @@ fi
 
 git add -A .
 git commit -m "Deploy $OUTPUT based on commit $COMMIT_HASH"
-git push $SSH_REPOSITORY $TARGET_BRANCH
+git push ssh_origin $TARGET_BRANCH
 popd # deployment
