@@ -12,7 +12,10 @@ set -euo pipefail
 if [ $TRAVIS_OS_NAME == linux ]; then
     if [ $ARCH == 'i686' ]; then
         export TARGET="i686-unknown-linux-gnu"
-        export EXTRA_CFLAGS="-m32"
+        export EXTRA_CFLAGS="-m32 -I/tmp/tools/usr/local/include"
+
+        mkdir -p /tmp/tools/usr/local/include
+        ln -s /usr/include/asm-generic /tmp/tools/usr/local/include/asm
     elif [ $ARCH == 'x86_64' ]; then
         export TARGET="x86_64-unknown-linux-gnu"
         export EXTRA_CFLAGS="-m64"
