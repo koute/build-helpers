@@ -97,7 +97,14 @@ fi
 # Build
 ##
 
-( PID=$BASHPID; (sleep 2200; kill $PID || true; sleep 10; killall cmake make ninja gcc g++ clang clang++ || true) & exec bash ./build.sh )
+(
+    PID=$BASHPID;
+    IFS=$'\n\t'
+    set -euo pipefail
+
+    (sleep 2200; kill $PID || true; sleep 10; killall cmake make ninja gcc g++ clang clang++ || true) & source ./build.sh
+)
+
 sha256sum $OUTPUT
 
 ##
