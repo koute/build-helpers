@@ -102,7 +102,7 @@ fi
     IFS=$'\n\t'
     set -euo pipefail
 
-    (sleep 2200; kill $PID || true; sleep 10; killall cmake make ninja gcc g++ clang clang++ || true) & source ./build.sh
+    (sleep 2560; kill $PID || true; sleep 10; killall cmake make ninja gcc g++ clang clang++ || true) & source ./build.sh
 )
 
 sha256sum $OUTPUT
